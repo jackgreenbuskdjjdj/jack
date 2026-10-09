@@ -1,4 +1,4 @@
-"""Evaluate three released DeepfakeBench detectors on author-preprocessed UADFV.
+"""Evaluate three released DeepfakeBench detectors on a fixed official DeepFakeFace image subset.
 All project execution, weights, and dataset processing happen on a GitHub cloud runner.
 """
 import os, sys, json, time, hashlib, platform, csv, random, warnings, runpy
