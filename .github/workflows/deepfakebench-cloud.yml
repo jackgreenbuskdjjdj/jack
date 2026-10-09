@@ -1,0 +1,40 @@
+name: DeepfakeBench free cloud evaluation
+on:
+  push:
+    branches: [deepfakebench-cloud-eval-20261009]
+    paths:
+      - cloud/**
+      - .github/workflows/deepfakebench-cloud.yml
+permissions:
+  contents: read
+jobs:
+  evaluate:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Clone pinned upstream on cloud
+        run: |
+          git clone https://github.com/SCLBD/DeepfakeBench.git
+          git -C DeepfakeBench checkout f188b1c105465e2e5377eb536a95022ae0e4522d
+      - name: Install CPU evaluation dependencies on cloud
+        run: |
+          python -m pip install --disable-pip-version-check 'numpy==1.23.5' 'scipy==1.10.1' 'scikit-learn==1.2.2' 'pandas==1.5.3' 'PyYAML==6.0.1' 'Pillow==9.5.0' 'tensorboard==2.10.1' 'protobuf==3.19.6' requests beautifulsoup4 tqdm
+          python -m pip install --disable-pip-version-check 'torch==1.12.1+cpu' 'torchvision==0.13.1+cpu' --extra-index-url https://download.pytorch.org/whl/cpu
+      - name: Run pretrained model and data access probe
+        run: |
+          mkdir -p results
+          set -o pipefail
+          python -u cloud/probe.py 2>&1 | tee results/cloud_run.log
+      - name: Preserve cloud reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deepfakebench-cloud-results
+          path: results/*
+          retention-days: 7
